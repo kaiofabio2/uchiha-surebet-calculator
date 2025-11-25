@@ -201,12 +201,6 @@ const SurebetCalculator = () => {
     const newLockedStakes = [...lockedStakes];
     newLockedStakes[index] = !newLockedStakes[index];
     setLockedStakes(newLockedStakes);
-    
-    if (newLockedStakes[index]) {
-      toast.success(`Stake ${String.fromCharCode(65 + index)} travado`);
-    } else {
-      toast.info(`Stake ${String.fromCharCode(65 + index)} destravado`);
-    }
   };
 
   const handleSpecificStakeChange = (index: number, value: number | '') => {
