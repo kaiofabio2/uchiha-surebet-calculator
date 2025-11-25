@@ -3,7 +3,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
-import { X } from 'lucide-react';
+import { X, Lock, Unlock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface OddInputProps {
   index: number;
@@ -13,9 +14,11 @@ interface OddInputProps {
   isRemovable: boolean;
   isFreebet: boolean;
   onFreebetToggle: (index: number, checked: boolean) => void;
+  isLocked: boolean;
+  onLockToggle: (index: number) => void;
 }
 
-const OddInput = ({ index, value, onChange, onRemove, isRemovable, isFreebet, onFreebetToggle }: OddInputProps) => {
+const OddInput = ({ index, value, onChange, onRemove, isRemovable, isFreebet, onFreebetToggle, isLocked, onLockToggle }: OddInputProps) => {
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-center gap-2">
@@ -35,6 +38,19 @@ const OddInput = ({ index, value, onChange, onRemove, isRemovable, isFreebet, on
           className="bg-uchiha-gray text-white"
           placeholder={`Cotação ${String.fromCharCode(65 + index)}`}
         />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onLockToggle(index)}
+          className={cn(
+            "h-8 w-8 shrink-0",
+            isLocked 
+              ? "text-amber-500 hover:text-amber-400 hover:bg-amber-950/20" 
+              : "text-gray-400 hover:text-gray-300"
+          )}
+        >
+          {isLocked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+        </Button>
         {isRemovable && (
           <Button 
             variant="ghost" 

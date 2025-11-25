@@ -2,9 +2,8 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, Percent, DollarSign, RefreshCw, Lock, Unlock } from 'lucide-react';
+import { ArrowUp, Percent, DollarSign, RefreshCw } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface ResultsDisplayProps {
@@ -17,7 +16,6 @@ interface ResultsDisplayProps {
   onSpecificStakeChange: (index: number, value: number | '') => void;
   freebets: boolean[];
   lockedStakes: boolean[];
-  onLockToggle: (index: number) => void;
 }
 
 const ResultsDisplay = ({ 
@@ -29,8 +27,7 @@ const ResultsDisplay = ({
   margin,
   onSpecificStakeChange,
   freebets,
-  lockedStakes,
-  onLockToggle
+  lockedStakes
 }: ResultsDisplayProps) => {
   // Calculate total stake
   const totalStake = stakes.reduce((sum, stake) => sum + (stake || 0), 0);
@@ -107,19 +104,6 @@ const ResultsDisplay = ({
                 )}
                 placeholder={`Valor para Odd ${String.fromCharCode(65 + index)}`}
               />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onLockToggle(index)}
-                className={cn(
-                  "h-9 w-9 shrink-0",
-                  lockedStakes[index] 
-                    ? "text-amber-500 hover:text-amber-400 hover:bg-amber-950/20" 
-                    : "text-gray-400 hover:text-gray-300"
-                )}
-              >
-                {lockedStakes[index] ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
-              </Button>
             </div>
           </div>
         ))}

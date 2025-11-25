@@ -38,7 +38,7 @@ const SurebetCalculator = () => {
     if (typeof totalStake === 'number' && totalStake > 0 && odds.every(odd => odd > 1)) {
       calculateResults();
     }
-  }, [odds, totalStake, roundingValue]);
+  }, [odds, totalStake, roundingValue, lockedStakes]);
 
   const calculateResults = () => {
     if (!odds.every(odd => odd > 1)) {
@@ -76,8 +76,9 @@ const SurebetCalculator = () => {
         calculatedProfit = calculateTotalProfitWithFreebet(calculatedStakes, odds, freebets);
         calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalRealStake);
       } else {
-        calculatedProfit = calculateTotalProfit(calculatedStakes, odds, totalStake);
-        calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalStake);
+        const newTotalStake = calculatedStakes.reduce((sum, stake) => sum + stake, 0);
+        calculatedProfit = calculateTotalProfit(calculatedStakes, odds, newTotalStake);
+        calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, newTotalStake);
       }
       
       setStakes(calculatedStakes);
@@ -278,6 +279,8 @@ const SurebetCalculator = () => {
                 handleRemoveOdd={handleRemoveOdd}
                 freebets={freebets}
                 onFreebetToggle={handleFreebetToggle}
+                lockedStakes={lockedStakes}
+                onLockToggle={handleLockToggle}
               />
 
               <Separator className="bg-uchiha-gray" />
@@ -309,7 +312,6 @@ const SurebetCalculator = () => {
               onSpecificStakeChange={handleSpecificStakeChange}
               freebets={freebets}
               lockedStakes={lockedStakes}
-              onLockToggle={handleLockToggle}
             />
             
             <div className="mt-6 text-center">
