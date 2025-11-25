@@ -34,7 +34,7 @@ const StakeConfigSection = ({
   return (
     <div className="space-y-6">
       {/* Total Stake Input */}
-      <div className="space-y-2">
+      <div className="space-y-2 flex flex-col items-center">
         <label htmlFor="totalStake" className="text-sm font-semibold text-gray-400">
           Valor Total da Aposta (R$)
         </label>
@@ -44,7 +44,7 @@ const StakeConfigSection = ({
           inputMode="numeric"
           value={formatDisplayValue(totalStake)}
           onChange={(e) => handleTotalStakeChange(e.target.value)}
-          className="bg-uchiha-gray text-white"
+          className="bg-uchiha-gray text-white text-center max-w-xs"
         />
       </div>
     </div>
