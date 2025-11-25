@@ -19,7 +19,8 @@ import {
   calculateMarginWithFreebet,
   calculateStakesWithFreebet,
   calculateTotalProfitWithFreebet,
-  recalculateStakesForSpecificBetWithFreebet
+  recalculateStakesForSpecificBetWithFreebet,
+  calculateStakesWithLocked
 } from '@/utils/surebetCalculator';
 
 const SurebetCalculator = () => {
@@ -30,6 +31,7 @@ const SurebetCalculator = () => {
   const [profit, setProfit] = useState<number>(0);
   const [profitPercentage, setProfitPercentage] = useState<number>(0);
   const [freebets, setFreebets] = useState<boolean[]>([false, false]);
+  const [lockedStakes, setLockedStakes] = useState<boolean[]>([false, false]);
 
   // Update calculations when inputs change
   useEffect(() => {
@@ -46,6 +48,41 @@ const SurebetCalculator = () => {
 
     if (typeof totalStake !== 'number' || totalStake <= 0) {
       toast.error("Valor total da aposta deve ser maior que 0");
+      return;
+    }
+
+    // Check if any stake is locked
+    const hasLockedStakes = lockedStakes.some(locked => locked);
+    
+    // If there are locked stakes, use the locked calculation
+    if (hasLockedStakes) {
+      const calculatedStakes = calculateStakesWithLocked(
+        odds, 
+        totalStake, 
+        lockedStakes, 
+        stakes, 
+        freebets
+      );
+      
+      const hasFreebets = freebets.some(fb => fb);
+      
+      let calculatedProfit: number;
+      let calculatedProfitPercentage: number;
+      
+      if (hasFreebets) {
+        const totalRealStake = calculatedStakes.reduce((sum, stake, index) => 
+          freebets[index] ? sum : sum + stake, 0
+        );
+        calculatedProfit = calculateTotalProfitWithFreebet(calculatedStakes, odds, freebets);
+        calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalRealStake);
+      } else {
+        calculatedProfit = calculateTotalProfit(calculatedStakes, odds, totalStake);
+        calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalStake);
+      }
+      
+      setStakes(calculatedStakes);
+      setProfit(calculatedProfit);
+      setProfitPercentage(calculatedProfitPercentage);
       return;
     }
 
@@ -98,6 +135,7 @@ const SurebetCalculator = () => {
     setOdds([...odds, 0]);
     setStakes([...stakes, 0]);
     setFreebets([...freebets, false]);
+    setLockedStakes([...lockedStakes, false]);
   };
 
   const handleRemoveOdd = (index: number) => {
@@ -116,6 +154,10 @@ const SurebetCalculator = () => {
     const newFreebets = [...freebets];
     newFreebets.splice(index, 1);
     setFreebets(newFreebets);
+    
+    const newLockedStakes = [...lockedStakes];
+    newLockedStakes.splice(index, 1);
+    setLockedStakes(newLockedStakes);
   };
 
   const updateOdd = (index: number, value: number) => {
@@ -151,6 +193,18 @@ const SurebetCalculator = () => {
       setTotalStake(newTotalStake);
       setProfit(calculatedProfit);
       setProfitPercentage(calculatedProfitPercentage);
+    }
+  };
+
+  const handleLockToggle = (index: number) => {
+    const newLockedStakes = [...lockedStakes];
+    newLockedStakes[index] = !newLockedStakes[index];
+    setLockedStakes(newLockedStakes);
+    
+    if (newLockedStakes[index]) {
+      toast.success(`Stake ${String.fromCharCode(65 + index)} travado`);
+    } else {
+      toast.info(`Stake ${String.fromCharCode(65 + index)} destravado`);
     }
   };
 
@@ -254,6 +308,8 @@ const SurebetCalculator = () => {
               margin={margin}
               onSpecificStakeChange={handleSpecificStakeChange}
               freebets={freebets}
+              lockedStakes={lockedStakes}
+              onLockToggle={handleLockToggle}
             />
             
             <div className="mt-6 text-center">
