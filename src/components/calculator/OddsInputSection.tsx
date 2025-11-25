@@ -10,13 +10,17 @@ interface OddsInputSectionProps {
   updateOdd: (index: number, value: number) => void;
   handleAddOdd: () => void;
   handleRemoveOdd: (index: number) => void;
+  freebetFlags?: boolean[];
+  onFreebetChange?: (index: number, isFreebet: boolean) => void;
 }
 
 const OddsInputSection = ({ 
   odds, 
   updateOdd, 
   handleAddOdd, 
-  handleRemoveOdd 
+  handleRemoveOdd,
+  freebetFlags,
+  onFreebetChange
 }: OddsInputSectionProps) => {
   return (
     <div className="space-y-4">
@@ -41,6 +45,8 @@ const OddsInputSection = ({
             onChange={updateOdd}
             onRemove={handleRemoveOdd}
             isRemovable={odds.length > 2}
+            isFreebet={freebetFlags ? freebetFlags[index] : false}
+            onFreebetChange={onFreebetChange}
           />
         ))}
       </div>

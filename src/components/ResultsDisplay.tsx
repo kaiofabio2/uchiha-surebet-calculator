@@ -2,7 +2,7 @@
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { ArrowUp, Percent, DollarSign, RefreshCw } from 'lucide-react';
+import { ArrowUp, Percent, DollarSign, RefreshCw, Ticket, Wallet } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
@@ -14,6 +14,9 @@ interface ResultsDisplayProps {
   isSurebetPossible: boolean;
   margin: number;
   onSpecificStakeChange: (index: number, value: number | '') => void;
+  freebetFlags?: boolean[];
+  realInvestment?: number | '';
+  freebetValue?: number;
 }
 
 const ResultsDisplay = ({ 
@@ -23,14 +26,19 @@ const ResultsDisplay = ({
   profitPercentage,
   isSurebetPossible,
   margin,
-  onSpecificStakeChange
+  onSpecificStakeChange,
+  freebetFlags = [],
+  realInvestment,
+  freebetValue = 0
 }: ResultsDisplayProps) => {
   // Calculate total stake
   const totalStake = stakes.reduce((sum, stake) => sum + (stake || 0), 0);
   
-  // Calculate total return (assuming all odds have the same return value in a balanced surebet)
+  const hasFreebet = freebetFlags.some(flag => flag);
+  
+  // Calculate total return considering freebets
   const totalReturn = stakes.length > 0 && odds.length > 0 && stakes[0] && odds[0] 
-    ? (stakes[0] * odds[0]) 
+    ? (freebetFlags[0] ? stakes[0] * (odds[0] - 1) : stakes[0] * odds[0])
     : 0;
 
   // Function to handle stake input changes
@@ -62,13 +70,26 @@ const ResultsDisplay = ({
           <div key={index} className="space-y-2">
             <div className="flex justify-between items-center">
               <div className="flex items-center">
-                <div className="flex items-center justify-center bg-uchiha-red w-8 h-8 rounded-md mr-2">
+                <div className={cn(
+                  "flex items-center justify-center w-8 h-8 rounded-md mr-2",
+                  freebetFlags[index] ? "bg-green-600" : "bg-uchiha-red"
+                )}>
                   <span className="text-white font-semibold">{String.fromCharCode(65 + index)}</span>
                 </div>
                 <div>
-                  <div className="text-sm">Odd: {odds[index].toFixed(2)}</div>
+                  <div className="text-sm flex items-center gap-1">
+                    Odd: {odds[index].toFixed(2)}
+                    {freebetFlags[index] && (
+                      <Ticket className="h-3 w-3 text-green-400" />
+                    )}
+                  </div>
                   <div className="text-xs text-gray-400">
-                    Retorno: R$ {stake ? (stake * odds[index]).toFixed(2) : '0.00'}
+                    Retorno: R$ {stake 
+                      ? (freebetFlags[index] 
+                          ? (stake * (odds[index] - 1)).toFixed(2) 
+                          : (stake * odds[index]).toFixed(2)
+                        )
+                      : '0.00'}
                   </div>
                 </div>
               </div>
@@ -80,7 +101,10 @@ const ResultsDisplay = ({
                 inputMode="numeric"
                 value={formatDisplayValue(stake)}
                 onChange={(e) => handleStakeChange(index, e.target.value)}
-                className="bg-uchiha-gray text-white"
+                className={cn(
+                  "text-white",
+                  freebetFlags[index] ? "bg-green-900/30 border-green-600" : "bg-uchiha-gray"
+                )}
                 placeholder={`Valor para Odd ${String.fromCharCode(65 + index)}`}
               />
             </div>
@@ -92,6 +116,31 @@ const ResultsDisplay = ({
       
       {/* Profit information */}
       <div className="space-y-3">
+        {/* Real Investment and Freebet Value */}
+        {hasFreebet && (
+          <>
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Wallet className="w-5 h-5 mr-2 text-blue-400" />
+                <span className="text-sm font-semibold">Investimento Real:</span>
+              </div>
+              <div className="font-bold text-blue-400">
+                R$ {typeof realInvestment === 'number' ? realInvestment.toFixed(2) : '0.00'}
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <div className="flex items-center">
+                <Ticket className="w-5 h-5 mr-2 text-green-400" />
+                <span className="text-sm font-semibold">Valor da Freebet:</span>
+              </div>
+              <div className="font-bold text-green-400">
+                R$ {freebetValue.toFixed(2)}
+              </div>
+            </div>
+          </>
+        )}
+        
         {/* Guaranteed profit */}
         <div className="flex justify-between items-center">
           <div className="flex items-center">

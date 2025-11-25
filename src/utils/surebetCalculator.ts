@@ -103,10 +103,15 @@ export const recalculateStakesForSpecificBet = (
   currentStakes: number[],
   odds: number[],
   changedIndex: number,
-  newStakeValue: number
+  newStakeValue: number,
+  freebetFlags?: boolean[]
 ): number[] => {
+  const isFreebetArray = freebetFlags || Array(odds.length).fill(false);
+  
   // Calculate the guaranteed return for the specific bet
-  const targetReturn = newStakeValue * odds[changedIndex];
+  const targetReturn = isFreebetArray[changedIndex]
+    ? newStakeValue * (odds[changedIndex] - 1)
+    : newStakeValue * odds[changedIndex];
   
   // Create a new stakes array with the changed stake
   const newStakes = [...currentStakes];
@@ -115,9 +120,91 @@ export const recalculateStakesForSpecificBet = (
   // Calculate what the other stakes should be to match the same return
   for (let i = 0; i < newStakes.length; i++) {
     if (i !== changedIndex) {
-      newStakes[i] = targetReturn / odds[i];
+      newStakes[i] = isFreebetArray[i]
+        ? targetReturn / (odds[i] - 1)
+        : targetReturn / odds[i];
     }
   }
   
   return newStakes;
+};
+
+// Calculate if a bet is a "surebet" with freebet consideration
+export const isSurebetWithFreebet = (odds: number[], freebetFlags: boolean[]): boolean => {
+  if (odds.length < 2 || odds.some(odd => odd <= 1)) return false;
+  
+  const sum = odds.reduce((acc, odd, index) => {
+    return acc + (freebetFlags[index] ? 1 / (odd - 1) : 1 / odd);
+  }, 0);
+  
+  return sum < 1;
+};
+
+// Calculate margin with freebet consideration
+export const calculateMarginWithFreebet = (odds: number[], freebetFlags: boolean[]): number => {
+  if (odds.length < 2 || odds.some(odd => odd <= 1)) return 0;
+  
+  const sum = odds.reduce((acc, odd, index) => {
+    return acc + (freebetFlags[index] ? 1 / (odd - 1) : 1 / odd);
+  }, 0);
+  
+  return ((1 - sum) / sum) * 100;
+};
+
+// Calculate stake distribution with freebet consideration
+export const calculateStakesWithFreebet = (
+  odds: number[],
+  totalStake: number,
+  freebetFlags: boolean[]
+): number[] => {
+  if (odds.length < 2 || totalStake <= 0) return Array(odds.length).fill(0);
+  
+  // Calculate implied probabilities considering freebet
+  const impliedProbs = odds.map((odd, index) => 
+    freebetFlags[index] ? 1 / (odd - 1) : 1 / odd
+  );
+  const totalImpliedProb = impliedProbs.reduce((acc, prob) => acc + prob, 0);
+  
+  // Distribute total stake proportionally to implied probabilities
+  return impliedProbs.map(prob => (prob / totalImpliedProb) * totalStake);
+};
+
+// Calculate profits with freebet consideration
+export const calculateProfitsWithFreebet = (
+  stakes: number[],
+  odds: number[],
+  totalStake: number,
+  freebetFlags: boolean[]
+): number[] => {
+  return stakes.map((stake, index) => {
+    const winnings = freebetFlags[index]
+      ? stake * (odds[index] - 1)  // Freebet only returns profit
+      : stake * odds[index];        // Regular bet returns stake + profit
+    return winnings - totalStake;
+  });
+};
+
+// Calculate the total profit with freebet consideration
+export const calculateTotalProfitWithFreebet = (
+  stakes: number[],
+  odds: number[],
+  totalStake: number,
+  freebetFlags: boolean[]
+): number => {
+  const profits = calculateProfitsWithFreebet(stakes, odds, totalStake, freebetFlags);
+  return Math.min(...profits);
+};
+
+// Calculate real investment (excluding freebet value)
+export const calculateRealInvestment = (stakes: number[], freebetFlags: boolean[]): number => {
+  return stakes.reduce((sum, stake, index) => {
+    return freebetFlags[index] ? sum : sum + stake;
+  }, 0);
+};
+
+// Calculate freebet value
+export const calculateFreebetValue = (stakes: number[], freebetFlags: boolean[]): number => {
+  return stakes.reduce((sum, stake, index) => {
+    return freebetFlags[index] ? sum + stake : sum;
+  }, 0);
 };

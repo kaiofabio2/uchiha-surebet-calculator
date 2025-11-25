@@ -14,7 +14,13 @@ import {
   roundStakes,
   calculateTotalProfit,
   calculateProfitPercentage,
-  recalculateStakesForSpecificBet
+  recalculateStakesForSpecificBet,
+  isSurebetWithFreebet,
+  calculateMarginWithFreebet,
+  calculateStakesWithFreebet,
+  calculateTotalProfitWithFreebet,
+  calculateRealInvestment,
+  calculateFreebetValue
 } from '@/utils/surebetCalculator';
 
 const SurebetCalculator = () => {
@@ -24,13 +30,14 @@ const SurebetCalculator = () => {
   const [stakes, setStakes] = useState<number[]>([0, 0]);
   const [profit, setProfit] = useState<number>(0);
   const [profitPercentage, setProfitPercentage] = useState<number>(0);
+  const [freebetFlags, setFreebetFlags] = useState<boolean[]>([false, false]);
 
   // Update calculations when inputs change
   useEffect(() => {
     if (typeof totalStake === 'number' && totalStake > 0 && odds.every(odd => odd > 1)) {
       calculateResults();
     }
-  }, [odds, totalStake, roundingValue]);
+  }, [odds, totalStake, roundingValue, freebetFlags]);
 
   const calculateResults = () => {
     if (!odds.every(odd => odd > 1)) {
@@ -43,13 +50,25 @@ const SurebetCalculator = () => {
       return;
     }
 
-    const calculatedStakes = calculateStakes(odds, totalStake);
+    const hasFreebet = freebetFlags.some(flag => flag);
+    
+    const calculatedStakes = hasFreebet
+      ? calculateStakesWithFreebet(odds, totalStake, freebetFlags)
+      : calculateStakes(odds, totalStake);
+      
     const roundedStakes = typeof roundingValue === 'number' && roundingValue > 0
       ? roundStakes(calculatedStakes, roundingValue, totalStake)
       : calculatedStakes;
     
-    const calculatedProfit = calculateTotalProfit(roundedStakes, odds, totalStake);
-    const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalStake);
+    const calculatedProfit = hasFreebet
+      ? calculateTotalProfitWithFreebet(roundedStakes, odds, totalStake, freebetFlags)
+      : calculateTotalProfit(roundedStakes, odds, totalStake);
+      
+    const realInvestment = hasFreebet
+      ? calculateRealInvestment(roundedStakes, freebetFlags)
+      : totalStake;
+      
+    const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, realInvestment);
     
     setStakes(roundedStakes);
     setProfit(calculatedProfit);
@@ -63,6 +82,7 @@ const SurebetCalculator = () => {
     }
     setOdds([...odds, 0]);
     setStakes([...stakes, 0]);
+    setFreebetFlags([...freebetFlags, false]);
   };
 
   const handleRemoveOdd = (index: number) => {
@@ -77,6 +97,10 @@ const SurebetCalculator = () => {
     const newStakes = [...stakes];
     newStakes.splice(index, 1);
     setStakes(newStakes);
+    
+    const newFreebetFlags = [...freebetFlags];
+    newFreebetFlags.splice(index, 1);
+    setFreebetFlags(newFreebetFlags);
   };
 
   const updateOdd = (index: number, value: number) => {
@@ -85,16 +109,30 @@ const SurebetCalculator = () => {
     setOdds(newOdds);
   };
 
+  const handleFreebetChange = (index: number, isFreebet: boolean) => {
+    const newFreebetFlags = [...freebetFlags];
+    newFreebetFlags[index] = isFreebet;
+    setFreebetFlags(newFreebetFlags);
+  };
+
   const handleSpecificStakeChange = (index: number, value: number | '') => {
     if (typeof value === 'number' && value >= 0) {
-      const newStakes = recalculateStakesForSpecificBet(stakes, odds, index, value);
+      const newStakes = recalculateStakesForSpecificBet(stakes, odds, index, value, freebetFlags);
       const newTotalStake = newStakes.reduce((sum, stake) => sum + stake, 0);
       
       setStakes(newStakes);
       setTotalStake(newTotalStake);
       
-      const calculatedProfit = calculateTotalProfit(newStakes, odds, newTotalStake);
-      const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, newTotalStake);
+      const hasFreebet = freebetFlags.some(flag => flag);
+      const calculatedProfit = hasFreebet
+        ? calculateTotalProfitWithFreebet(newStakes, odds, newTotalStake, freebetFlags)
+        : calculateTotalProfit(newStakes, odds, newTotalStake);
+        
+      const realInvestment = hasFreebet
+        ? calculateRealInvestment(newStakes, freebetFlags)
+        : newTotalStake;
+        
+      const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, realInvestment);
       
       setProfit(calculatedProfit);
       setProfitPercentage(calculatedProfitPercentage);
@@ -105,8 +143,11 @@ const SurebetCalculator = () => {
     }
   };
 
-  const isSurebetPossible = isSurebet(odds);
-  const margin = calculateMargin(odds);
+  const hasFreebet = freebetFlags.some(flag => flag);
+  const isSurebetPossible = hasFreebet ? isSurebetWithFreebet(odds, freebetFlags) : isSurebet(odds);
+  const margin = hasFreebet ? calculateMarginWithFreebet(odds, freebetFlags) : calculateMargin(odds);
+  const realInvestment = hasFreebet ? calculateRealInvestment(stakes, freebetFlags) : totalStake;
+  const freebetValue = hasFreebet ? calculateFreebetValue(stakes, freebetFlags) : 0;
 
   return (
     <div className="w-full max-w-4xl mx-auto p-4">
@@ -133,6 +174,8 @@ const SurebetCalculator = () => {
                 updateOdd={updateOdd}
                 handleAddOdd={handleAddOdd}
                 handleRemoveOdd={handleRemoveOdd}
+                freebetFlags={freebetFlags}
+                onFreebetChange={handleFreebetChange}
               />
 
               <Separator className="bg-uchiha-gray" />
@@ -162,6 +205,9 @@ const SurebetCalculator = () => {
               isSurebetPossible={isSurebetPossible}
               margin={margin}
               onSpecificStakeChange={handleSpecificStakeChange}
+              freebetFlags={freebetFlags}
+              realInvestment={realInvestment}
+              freebetValue={freebetValue}
             />
             
             <div className="mt-6 text-center">
