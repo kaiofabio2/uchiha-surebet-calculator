@@ -4,16 +4,12 @@ import { Input } from '@/components/ui/input';
 
 interface StakeConfigSectionProps {
   totalStake: number | '';
-  roundingValue: number | '';
   setTotalStake: (value: number | '') => void;
-  setRoundingValue: (value: number | '') => void;
 }
 
 const StakeConfigSection = ({
   totalStake,
-  roundingValue,
-  setTotalStake,
-  setRoundingValue
+  setTotalStake
 }: StakeConfigSectionProps) => {
   // Function to handle stake input changes with proper formatting
   const handleTotalStakeChange = (inputValue: string) => {
@@ -48,25 +44,6 @@ const StakeConfigSection = ({
           inputMode="numeric"
           value={formatDisplayValue(totalStake)}
           onChange={(e) => handleTotalStakeChange(e.target.value)}
-          className="bg-uchiha-gray text-white"
-        />
-      </div>
-
-      {/* Rounding Value Input */}
-      <div className="space-y-2">
-        <label htmlFor="roundingValue" className="text-sm font-semibold text-gray-400">
-          Arredondar Apostas Para (R$)
-        </label>
-        <Input
-          id="roundingValue"
-          type="number"
-          min="0"
-          step="0.5"
-          value={roundingValue ?? ''}
-          onChange={(e) => {
-            const val = e.target.value === '' ? '' : parseFloat(e.target.value);
-            setRoundingValue(val);
-          }}
           className="bg-uchiha-gray text-white"
         />
       </div>
