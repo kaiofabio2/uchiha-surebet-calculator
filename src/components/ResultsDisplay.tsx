@@ -154,7 +154,7 @@ const ResultsDisplay = ({
           )}>
             {isSurebetPossible 
               ? `Surebet Encontrada: ${margin.toFixed(2)}% de lucro`
-              : "Não é uma Surebet"
+              : !freebets.some(fb => fb) ? "Não é uma Surebet" : ""
             }
           </div>
           {isSurebetPossible && (
