@@ -36,7 +36,7 @@ const SurebetCalculator = () => {
     if (typeof totalStake === 'number' && totalStake > 0 && odds.every(odd => odd > 1)) {
       calculateResults();
     }
-  }, [odds, totalStake, roundingValue, freebets]);
+  }, [odds, totalStake, roundingValue]);
 
   const calculateResults = () => {
     if (!odds.every(odd => odd > 1)) {
@@ -128,6 +128,30 @@ const SurebetCalculator = () => {
     const newFreebets = [...freebets];
     newFreebets[index] = checked;
     setFreebets(newFreebets);
+    
+    // Recalcular stakes mantendo o valor do stake atual
+    if (stakes[index] > 0 && odds.every(odd => odd > 1)) {
+      const newStakes = recalculateStakesForSpecificBetWithFreebet(
+        stakes, 
+        odds, 
+        newFreebets,
+        index, 
+        stakes[index]
+      );
+      
+      const newTotalStake = newStakes.reduce((sum, stake) => sum + stake, 0);
+      const totalRealStake = newStakes.reduce((sum, stake, idx) => 
+        newFreebets[idx] ? sum : sum + stake, 0
+      );
+      
+      const calculatedProfit = calculateTotalProfitWithFreebet(newStakes, odds, newFreebets);
+      const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalRealStake);
+      
+      setStakes(newStakes);
+      setTotalStake(newTotalStake);
+      setProfit(calculatedProfit);
+      setProfitPercentage(calculatedProfitPercentage);
+    }
   };
 
   const handleSpecificStakeChange = (index: number, value: number | '') => {
