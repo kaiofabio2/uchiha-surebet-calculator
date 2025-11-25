@@ -14,6 +14,7 @@ interface ResultsDisplayProps {
   isSurebetPossible: boolean;
   margin: number;
   onSpecificStakeChange: (index: number, value: number | '') => void;
+  freebets: boolean[];
 }
 
 const ResultsDisplay = ({ 
@@ -23,10 +24,16 @@ const ResultsDisplay = ({
   profitPercentage,
   isSurebetPossible,
   margin,
-  onSpecificStakeChange
+  onSpecificStakeChange,
+  freebets
 }: ResultsDisplayProps) => {
   // Calculate total stake
   const totalStake = stakes.reduce((sum, stake) => sum + (stake || 0), 0);
+  
+  // Calculate real stake (only non-freebet stakes)
+  const realStake = stakes.reduce((sum, stake, index) => 
+    freebets[index] ? sum : sum + (stake || 0), 0
+  );
   
   // Calculate total return (assuming all odds have the same return value in a balanced surebet)
   const totalReturn = stakes.length > 0 && odds.length > 0 && stakes[0] && odds[0] 
@@ -65,10 +72,17 @@ const ResultsDisplay = ({
                 <div className="flex items-center justify-center bg-uchiha-red w-8 h-8 rounded-md mr-2">
                   <span className="text-white font-semibold">{String.fromCharCode(65 + index)}</span>
                 </div>
-                <div>
-                  <div className="text-sm">Odd: {odds[index].toFixed(2)}</div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm">Odd: {odds[index].toFixed(2)}</div>
+                    {freebets[index] && (
+                      <span className="text-xs bg-green-500/20 text-green-400 px-2 py-0.5 rounded border border-green-500/30">
+                        FREEBET
+                      </span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-400">
-                    Retorno: R$ {stake ? (stake * odds[index]).toFixed(2) : '0.00'}
+                    Retorno: R$ {stake ? (freebets[index] ? ((odds[index] - 1) * stake).toFixed(2) : (stake * odds[index]).toFixed(2)) : '0.00'}
                   </div>
                 </div>
               </div>
@@ -89,6 +103,21 @@ const ResultsDisplay = ({
       </div>
       
       <Separator className="bg-uchiha-gray" />
+      
+      {/* Real Stake vs Total Stake */}
+      {freebets.some(fb => fb) && (
+        <div className="space-y-2">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-400">Stake Real (sem freebets):</span>
+            <span className="font-semibold text-white">R$ {realStake.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-400">Stake Total (com freebets):</span>
+            <span className="font-semibold text-white">R$ {totalStake.toFixed(2)}</span>
+          </div>
+          <Separator className="bg-uchiha-gray" />
+        </div>
+      )}
       
       {/* Profit information */}
       <div className="space-y-3">
