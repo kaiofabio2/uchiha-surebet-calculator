@@ -243,3 +243,84 @@ export const recalculateStakesForSpecificBetWithFreebet = (
   
   return newStakes;
 };
+
+// Calculate stakes with locked stakes consideration
+export const calculateStakesWithLocked = (
+  odds: number[],
+  totalStake: number,
+  lockedStakes: boolean[],
+  currentStakes: number[],
+  freebets: boolean[]
+): number[] => {
+  if (odds.length < 2 || totalStake <= 0) return Array(odds.length).fill(0);
+  
+  // If all stakes are locked, just return current stakes
+  if (lockedStakes.every(locked => locked)) {
+    return [...currentStakes];
+  }
+  
+  // Calculate the target return based on the first locked stake
+  let targetReturn: number | null = null;
+  
+  for (let i = 0; i < odds.length; i++) {
+    if (lockedStakes[i] && currentStakes[i] > 0) {
+      if (freebets[i]) {
+        targetReturn = (odds[i] - 1) * currentStakes[i];
+      } else {
+        targetReturn = odds[i] * currentStakes[i];
+      }
+      break;
+    }
+  }
+  
+  // If no locked stake with value, calculate normally for unlocked ones
+  if (targetReturn === null) {
+    const unlockedOdds = odds.filter((_, index) => !lockedStakes[index]);
+    const unlockedFreebets = freebets.filter((_, index) => !lockedStakes[index]);
+    
+    if (unlockedOdds.length === 0) return [...currentStakes];
+    
+    const hasFreebets = unlockedFreebets.some(fb => fb);
+    
+    if (hasFreebets) {
+      const unlockedStakes = calculateStakesWithFreebet(unlockedOdds, totalStake, unlockedFreebets);
+      const result = [...currentStakes];
+      let unlockedIndex = 0;
+      
+      for (let i = 0; i < result.length; i++) {
+        if (!lockedStakes[i]) {
+          result[i] = unlockedStakes[unlockedIndex++];
+        }
+      }
+      
+      return result;
+    } else {
+      const unlockedStakes = calculateStakes(unlockedOdds, totalStake);
+      const result = [...currentStakes];
+      let unlockedIndex = 0;
+      
+      for (let i = 0; i < result.length; i++) {
+        if (!lockedStakes[i]) {
+          result[i] = unlockedStakes[unlockedIndex++];
+        }
+      }
+      
+      return result;
+    }
+  }
+  
+  // Calculate unlocked stakes based on target return from locked stakes
+  const newStakes = [...currentStakes];
+  
+  for (let i = 0; i < newStakes.length; i++) {
+    if (!lockedStakes[i]) {
+      if (freebets[i]) {
+        newStakes[i] = targetReturn / (odds[i] - 1);
+      } else {
+        newStakes[i] = targetReturn / odds[i];
+      }
+    }
+  }
+  
+  return newStakes;
+};
