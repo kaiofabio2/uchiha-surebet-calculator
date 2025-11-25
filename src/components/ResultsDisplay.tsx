@@ -111,21 +111,6 @@ const ResultsDisplay = ({
       
       <Separator className="bg-uchiha-gray" />
       
-      {/* Real Stake vs Total Stake */}
-      {freebets.some(fb => fb) && (
-        <div className="space-y-2">
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-400">Stake Real (sem freebets):</span>
-            <span className="font-semibold text-white">R$ {realStake.toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center text-sm">
-            <span className="text-gray-400">Stake Total (com freebets):</span>
-            <span className="font-semibold text-white">R$ {totalStake.toFixed(2)}</span>
-          </div>
-          <Separator className="bg-uchiha-gray" />
-        </div>
-      )}
-      
       {/* Profit information */}
       <div className="space-y-3">
         {/* Guaranteed profit */}
