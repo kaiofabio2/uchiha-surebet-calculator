@@ -37,7 +37,9 @@ const ResultsDisplay = ({
   
   // Calculate total return (assuming all odds have the same return value in a balanced surebet)
   const totalReturn = stakes.length > 0 && odds.length > 0 && stakes[0] && odds[0] 
-    ? (stakes[0] * odds[0]) 
+    ? (freebets[0] 
+        ? (odds[0] - 1) * stakes[0]  // Freebet: retorna apenas o lucro
+        : stakes[0] * odds[0])        // Normal: retorna stake + lucro
     : 0;
 
   // Function to handle stake input changes
