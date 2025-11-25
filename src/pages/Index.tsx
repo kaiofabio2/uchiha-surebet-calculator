@@ -25,7 +25,7 @@ const Index = () => {
         
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500">
-          <p>&copy; 2025 Madara Surebet</p>
+          <p>&copy; 2026 Madara Surebet</p>
         </div>
       </div>
     </div>
