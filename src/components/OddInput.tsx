@@ -35,7 +35,7 @@ const OddInput = ({ index, value, onChange, onRemove, isRemovable, isFreebet, on
             const parsedValue = inputValue === '' ? 0 : parseFloat(inputValue);
             onChange(index, parsedValue);
           }}
-          className="bg-uchiha-gray text-white"
+          className="bg-uchiha-gray text-white [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
           placeholder={`Cotação ${String.fromCharCode(65 + index)}`}
         />
         <Button
