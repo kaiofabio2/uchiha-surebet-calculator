@@ -11,7 +11,6 @@ import {
   isSurebet, 
   calculateMargin,
   calculateStakes,
-  roundStakes,
   calculateTotalProfit,
   calculateProfitPercentage,
   recalculateStakesForSpecificBet,
@@ -26,7 +25,6 @@ import {
 const SurebetCalculator = () => {
   const [odds, setOdds] = useState<number[]>([0, 0]);
   const [totalStake, setTotalStake] = useState<number | ''>();
-  const [roundingValue, setRoundingValue] = useState<number | ''>();
   const [stakes, setStakes] = useState<number[]>([0, 0]);
   const [profit, setProfit] = useState<number>(0);
   const [profitPercentage, setProfitPercentage] = useState<number>(0);
@@ -38,7 +36,7 @@ const SurebetCalculator = () => {
     if (typeof totalStake === 'number' && totalStake > 0 && odds.every(odd => odd > 1)) {
       calculateResults();
     }
-  }, [odds, totalStake, roundingValue, lockedStakes]);
+  }, [odds, totalStake, lockedStakes]);
 
   const calculateResults = () => {
     if (!odds.every(odd => odd > 1)) {
@@ -96,33 +94,27 @@ const SurebetCalculator = () => {
     if (hasFreebets) {
       // Use freebet-aware calculations
       calculatedStakes = calculateStakesWithFreebet(odds, totalStake, freebets);
-      const roundedStakes = typeof roundingValue === 'number' && roundingValue > 0
-        ? roundStakes(calculatedStakes, roundingValue, totalStake)
-        : calculatedStakes;
       
-      calculatedProfit = calculateTotalProfitWithFreebet(roundedStakes, odds, freebets);
+      calculatedProfit = calculateTotalProfitWithFreebet(calculatedStakes, odds, freebets);
       
       // Calculate total real stake (only non-freebets)
-      const totalRealStake = roundedStakes.reduce((sum, stake, index) => 
+      const totalRealStake = calculatedStakes.reduce((sum, stake, index) => 
         freebets[index] ? sum : sum + stake, 0
       );
       
       const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalRealStake);
       
-      setStakes(roundedStakes);
+      setStakes(calculatedStakes);
       setProfit(calculatedProfit);
       setProfitPercentage(calculatedProfitPercentage);
     } else {
       // Use regular calculations
       calculatedStakes = calculateStakes(odds, totalStake);
-      const roundedStakes = typeof roundingValue === 'number' && roundingValue > 0
-        ? roundStakes(calculatedStakes, roundingValue, totalStake)
-        : calculatedStakes;
       
-      calculatedProfit = calculateTotalProfit(roundedStakes, odds, totalStake);
+      calculatedProfit = calculateTotalProfit(calculatedStakes, odds, totalStake);
       const calculatedProfitPercentage = calculateProfitPercentage(calculatedProfit, totalStake);
       
-      setStakes(roundedStakes);
+      setStakes(calculatedStakes);
       setProfit(calculatedProfit);
       setProfitPercentage(calculatedProfitPercentage);
     }
@@ -282,9 +274,7 @@ const SurebetCalculator = () => {
               {/* Stake Config Section */}
               <StakeConfigSection 
                 totalStake={totalStake}
-                roundingValue={roundingValue}
                 setTotalStake={setTotalStake}
-                setRoundingValue={setRoundingValue}
               />
             </div>
           </CardContent>
