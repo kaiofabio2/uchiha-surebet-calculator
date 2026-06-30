@@ -1,0 +1,189 @@
+/* Container principal do painel flutuante */
+#madara-surebet-panel {
+  position: fixed !important;
+  top: 20px;
+  right: 20px;
+  width: 880px;
+  height: 720px;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100vh - 40px);
+  z-index: 2147483647 !important;
+  background: #0C0C0D;
+  border: 2px solid #ea384c;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(234, 56, 76, 0.4), 0 0 0 1px rgba(234, 56, 76, 0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #fff;
+  resize: both;
+  min-width: 400px;
+  min-height: 400px;
+}
+
+#madara-surebet-panel.madara-minimized {
+  height: 48px !important;
+  min-height: 48px !important;
+  resize: none;
+}
+
+#madara-surebet-panel.madara-minimized #madara-surebet-iframe,
+#madara-surebet-panel.madara-minimized #madara-surebet-resizer {
+  display: none;
+}
+
+/* Header arrastavel */
+#madara-surebet-header {
+  background: linear-gradient(90deg, #1a0508 0%, #2a0a10 100%);
+  border-bottom: 1px solid #ea384c;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+#madara-surebet-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ea384c;
+  letter-spacing: 1px;
+  text-shadow: 0 0 8px rgba(234, 56, 76, 0.5);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#madara-surebet-title::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ea384c;
+  box-shadow: 0 0 8px #ea384c;
+  animation: madara-pulse 2s ease-in-out infinite;
+}
+
+@keyframes madara-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+#madara-surebet-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.madara-btn {
+  background: rgba(234, 56, 76, 0.1);
+  border: 1px solid rgba(234, 56, 76, 0.4);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1;
+}
+
+.madara-btn:hover {
+  background: rgba(234, 56, 76, 0.25);
+  border-color: #ea384c;
+}
+
+.madara-btn.madara-active {
+  background: #ea384c;
+  border-color: #ea384c;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(234, 56, 76, 0.6);
+}
+
+.madara-icon-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.madara-icon-btn:hover {
+  background: rgba(234, 56, 76, 0.2);
+  color: #fff;
+}
+
+/* Iframe */
+#madara-surebet-iframe {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #0C0C0D;
+}
+
+/* Highlight para elementos capturaveis no modo captura */
+.madara-capture-mode * {
+  cursor: crosshair !important;
+}
+
+.madara-capture-highlight {
+  outline: 2px solid #ea384c !important;
+  outline-offset: 2px !important;
+  background-color: rgba(234, 56, 76, 0.15) !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease;
+}
+
+/* Tooltip flutuante que segue o cursor */
+#madara-capture-tooltip {
+  position: fixed;
+  z-index: 2147483647;
+  background: #ea384c;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+}
+
+/* Toast de feedback */
+#madara-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 2147483647;
+  background: #0C0C0D;
+  border: 2px solid #ea384c;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  box-shadow: 0 8px 24px rgba(234, 56, 76, 0.4);
+  animation: madara-toast-in 0.2s ease-out;
+}
+
+@keyframes madara-toast-in {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}

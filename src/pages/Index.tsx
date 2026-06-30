@@ -1,8 +1,8 @@
-
 import React from 'react';
 import SurebetCalculator from '@/components/SurebetCalculator';
 import MadaraLogo from '@/components/MadaraLogo';
 import { Separator } from '@/components/ui/separator';
+import ExtensionDownload from '@/components/ExtensionDownload';
 
 const Index = () => {
   return (
@@ -22,6 +22,9 @@ const Index = () => {
         
         {/* Main Calculator */}
         <SurebetCalculator />
+
+        {/* Chrome Extension Download */}
+        <ExtensionDownload />
         
         {/* Footer */}
         <div className="mt-12 text-center text-sm text-gray-500">
