@@ -116,13 +116,7 @@
       minBtn.textContent = panel.classList.contains('madara-minimized') ? '+' : '−';
     });
 
-    closeBtn.addEventListener('click', () => {
-      try {
-        chrome.storage.local.set({ madara_panel_open: false });
-        chrome.runtime.sendMessage({ type: 'MADARA_REQUEST_CLOSE_ALL' });
-      } catch (_) {}
-      removePanel();
-    });
+    closeBtn.addEventListener('click', removePanel);
   }
 
   // -----------------------------
@@ -257,21 +251,11 @@
   // -----------------------------
   // Mensagens do background / iframe
   // -----------------------------
-  const STATE_KEY = 'madara_panel_open';
-
   chrome.runtime.onMessage.addListener((msg) => {
-    if (!msg) return;
-    if (msg.type === 'MADARA_TOGGLE_PANEL') togglePanel();
-    if (msg.type === 'MADARA_OPEN_PANEL') createPanel();
-    if (msg.type === 'MADARA_CLOSE_PANEL') removePanel();
+    if (msg && msg.type === 'MADARA_TOGGLE_PANEL') {
+      togglePanel();
+    }
   });
-
-  // Ao carregar qualquer pagina/aba, verifica o estado global e abre o painel
-  try {
-    chrome.storage.local.get(STATE_KEY, (res) => {
-      if (res && res[STATE_KEY]) createPanel();
-    });
-  } catch (_) {}
 
   // Reset do contador quando a calculadora avisa que carregou
   window.addEventListener('message', (e) => {
