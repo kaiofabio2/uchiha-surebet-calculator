@@ -21,3 +21,10 @@ chrome.action.onClicked.addListener(async () => {
   await chrome.storage.local.set({ [STATE_KEY]: next });
   await broadcast(next);
 });
+
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg && msg.type === 'MADARA_REQUEST_CLOSE_ALL') {
+    chrome.storage.local.set({ [STATE_KEY]: false });
+    broadcast(false);
+  }
+});
