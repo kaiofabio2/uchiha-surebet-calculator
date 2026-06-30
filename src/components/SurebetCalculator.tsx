@@ -38,6 +38,33 @@ const SurebetCalculator = () => {
     }
   }, [odds, totalStake, lockedStakes]);
 
+  // Listen for odds captured by the Chrome extension via postMessage
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.data || event.data.type !== 'MADARA_ODD_CAPTURED') return;
+      const value = parseFloat(event.data.value);
+      if (!value || value <= 1 || value > 1000) return;
+
+      setOdds((prev) => {
+        const next = [...prev];
+        const emptyIndex = next.findIndex((o) => !o || o <= 1);
+        if (emptyIndex === -1) {
+          toast.warning('Todos os campos preenchidos. Limpe um para capturar mais.');
+          return prev;
+        }
+        next[emptyIndex] = value;
+        toast.success(`Odd ${String.fromCharCode(65 + emptyIndex)} capturada: ${value.toFixed(2)}`);
+        return next;
+      });
+    };
+    window.addEventListener('message', handleMessage);
+    // Sinaliza para o content script da extensão que a calculadora está pronta
+    try {
+      window.parent?.postMessage({ type: 'MADARA_CALC_READY' }, '*');
+    } catch {}
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
   const calculateResults = () => {
     if (!odds.every(odd => odd > 1)) {
       toast.error("Todas as odds devem ser maiores que 1");
