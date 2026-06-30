@@ -116,7 +116,13 @@
       minBtn.textContent = panel.classList.contains('madara-minimized') ? '+' : '−';
     });
 
-    closeBtn.addEventListener('click', removePanel);
+    closeBtn.addEventListener('click', () => {
+      try {
+        chrome.storage.local.set({ madara_panel_open: false });
+        chrome.runtime.sendMessage({ type: 'MADARA_REQUEST_CLOSE_ALL' });
+      } catch (_) {}
+      removePanel();
+    });
   }
 
   // -----------------------------
