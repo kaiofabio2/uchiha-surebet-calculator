@@ -1,10 +1,23 @@
-// Service worker - alterna o painel flutuante quando o icone e clicado
-chrome.action.onClicked.addListener(async (tab) => {
-  if (!tab.id) return;
-  try {
-    await chrome.tabs.sendMessage(tab.id, { type: 'MADARA_TOGGLE_PANEL' });
-  } catch (err) {
-    // Content script ainda nao foi injetado (paginas chrome://, web store etc)
-    console.warn('[Madara Surebet] Nao foi possivel abrir o painel nesta pagina:', err?.message);
+// Service worker - alterna o estado global do painel em todas as abas
+const STATE_KEY = 'madara_panel_open';
+
+async function broadcast(open) {
+  const tabs = await chrome.tabs.query({});
+  for (const tab of tabs) {
+    if (!tab.id) continue;
+    try {
+      await chrome.tabs.sendMessage(tab.id, {
+        type: open ? 'MADARA_OPEN_PANEL' : 'MADARA_CLOSE_PANEL',
+      });
+    } catch (_) {
+      // Aba sem content script (chrome://, web store, etc) - ignora
+    }
   }
+}
+
+chrome.action.onClicked.addListener(async () => {
+  const { [STATE_KEY]: open = false } = await chrome.storage.local.get(STATE_KEY);
+  const next = !open;
+  await chrome.storage.local.set({ [STATE_KEY]: next });
+  await broadcast(next);
 });
