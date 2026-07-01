@@ -16,6 +16,8 @@ export default defineConfig({
   build: {
     outDir: "extension",
     emptyOutDir: false,
+    copyPublicDir: false,
+    emptyOutDir: false,
     cssCodeSplit: false,
     lib: {
       entry: path.resolve(__dirname, "extension/src/main.tsx"),
