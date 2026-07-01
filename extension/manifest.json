@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Madara Surebet",
-  "version": "1.0.0",
-  "description": "Calculadora de Surebet flutuante com captura automatica de odds em qualquer casa de apostas.",
+  "version": "2.0.0",
+  "description": "Calculadora de Surebet flutuante, independente, com captura automatica de odds e sincronia entre abas.",
   "permissions": ["activeTab", "storage", "scripting"],
   "host_permissions": ["<all_urls>"],
   "action": {
@@ -19,9 +19,15 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["calculator.iife.js", "content.js"],
       "css": ["content.css"],
       "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["calculator.css", "icon-*.png"],
+      "matches": ["<all_urls>"]
     }
   ],
   "icons": {

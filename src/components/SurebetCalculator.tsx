@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import ResultsDisplay from '@/components/ResultsDisplay';
 import OddsInputSection from '@/components/calculator/OddsInputSection';
 import StakeConfigSection from '@/components/calculator/StakeConfigSection';
+import { useChromeStorageSync } from '@/hooks/useChromeStorageSync';
 import { 
   isSurebet, 
   calculateMargin,
@@ -31,20 +32,17 @@ const SurebetCalculator = () => {
   const [freebets, setFreebets] = useState<boolean[]>([false, false]);
   const [lockedStakes, setLockedStakes] = useState<boolean[]>([false, false]);
 
-  // Update calculations when inputs change
-  useEffect(() => {
-    if (typeof totalStake === 'number' && totalStake > 0 && odds.every(odd => odd > 1)) {
-      calculateResults();
-    }
-  }, [odds, totalStake, lockedStakes]);
-
-  // Listen for odds captured by the Chrome extension via postMessage
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (!event.data || event.data.type !== 'MADARA_ODD_CAPTURED') return;
-      const value = parseFloat(event.data.value);
-      if (!value || value <= 1 || value > 1000) return;
-
+  // Sincroniza com chrome.storage.local (extensão) - no-op no site
+  const { persist } = useChromeStorageSync({
+    getSnapshot: () => ({ odds, totalStake, stakes, freebets, lockedStakes }),
+    applySnapshot: (snap) => {
+      if (Array.isArray(snap.odds)) setOdds(snap.odds);
+      if (Array.isArray(snap.stakes)) setStakes(snap.stakes);
+      if ('totalStake' in snap) setTotalStake(snap.totalStake ?? '');
+      if (Array.isArray(snap.freebets)) setFreebets(snap.freebets);
+      if (Array.isArray(snap.lockedStakes)) setLockedStakes(snap.lockedStakes);
+    },
+    onOddCaptured: (value) => {
       setOdds((prev) => {
         const next = [...prev];
         const emptyIndex = next.findIndex((o) => !o || o <= 1);
@@ -56,14 +54,20 @@ const SurebetCalculator = () => {
         toast.success(`Odd ${String.fromCharCode(65 + emptyIndex)} capturada: ${value.toFixed(2)}`);
         return next;
       });
-    };
-    window.addEventListener('message', handleMessage);
-    // Sinaliza para o content script da extensão que a calculadora está pronta
-    try {
-      window.parent?.postMessage({ type: 'MADARA_CALC_READY' }, '*');
-    } catch {}
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+    },
+  });
+
+  // Update calculations when inputs change
+  useEffect(() => {
+    if (typeof totalStake === 'number' && totalStake > 0 && odds.every(odd => odd > 1)) {
+      calculateResults();
+    }
+  }, [odds, totalStake, lockedStakes]);
+
+  // Persiste snapshot completo sempre que qualquer estado mudar
+  useEffect(() => {
+    persist();
+  }, [odds, totalStake, stakes, freebets, lockedStakes]);
 
   const calculateResults = () => {
     if (!odds.every(odd => odd > 1)) {
